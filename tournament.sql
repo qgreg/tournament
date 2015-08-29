@@ -20,8 +20,14 @@ CREATE TABLE matches (
 	PRIMARY KEY (id1, id2)
 );
 
--- Create loser view
-
+-- Create fullmatches view
+CREATE VIEW fullmatches (
+	(SELECT id1, id2, winner, id2 as loser FROM matches
+		WHERE id1 = winner) 
+	UNION
+	(SELECT id1, id2, winner, id1 as loser FROM matches
+		WHERE id2 = winner)
+);
 
 -- Need a standings view
 
