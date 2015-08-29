@@ -21,6 +21,7 @@ CREATE TABLE matches (
 );
 
 -- Create fullmatches view
+
 CREATE VIEW fullmatches (
 	(SELECT id1, id2, winner, id2 as loser FROM matches
 		WHERE id1 = winner) 
@@ -31,5 +32,20 @@ CREATE VIEW fullmatches (
 
 -- Need a standings view
 
+CREATE VIEW wins (
+	SELECT id, count(winner) AS wins FROM players, matches
+		WHERE id = winner
+);
+
+CREATE VIEW played (
+	SELECT id, count(winner) AS games FROM players LEFT JOIN matches
+		WHERE id = id1 OR id = id2
+);
+
+CREATE VIEW standings (
+	SELECT id, wins, games FROM played LEFT JOIN wins
+		WHERE played.id = wins.id 
+		ORDER BY wins DESC
+);
 
 
