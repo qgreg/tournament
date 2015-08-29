@@ -4,6 +4,7 @@
 #
 
 import psycopg2
+import bleach
 
 
 def connect():
@@ -45,7 +46,12 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-
+    conn = connect()
+    c = conn.cursor()
+    cleanname = bleach.clean(name)
+    c.execute("INSERT INTO players(name) VALUES (%s);", (cleanname,))
+    conn.commit() 
+    conn.close()
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
