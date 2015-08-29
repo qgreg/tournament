@@ -14,38 +14,42 @@ CREATE TABLE players (
 );
 
 CREATE TABLE matches (
-	id1		integer REFERENCES players(id), 
-	id2		integer	REFERENCES players(id),
-	winner	integer REFERENCES players(id),
-	PRIMARY KEY (id1, id2)
-);
-
--- Create fullmatches view
-
-CREATE VIEW fullmatches (
-	(SELECT id1, id2, winner, id2 as loser FROM matches
-		WHERE id1 = winner) 
-	UNION
-	(SELECT id1, id2, winner, id1 as loser FROM matches
-		WHERE id2 = winner)
+	winner		integer REFERENCES players(id), 
+	loser		integer	REFERENCES players(id),
+	PRIMARY KEY (winner, loser)
 );
 
 -- Need a standings view
 
 CREATE VIEW wins AS
-	SELECT id, count(winner) AS wins FROM players, matches
-		WHERE id = winner
-);
+	SELECT id, count(winner) AS ct
+	FROM players LEFT JOIN matches
+	ON id = winner
+		GROUP BY id
+;
+
+CREATE VIEW losses AS
+	SELECT id, count(loser) AS ct
+	FROM players LEFT JOIN matches
+	ON id = loser
+		GROUP BY id
+;
 
 CREATE VIEW played AS
-	SELECT id, count(winner) AS games FROM players LEFT JOIN matches
-		WHERE id = id1 OR id = id2
-);
+		SELECT id, sum(ct) AS ct 
+		FROM (
+			SELECT * FROM wins 
+			UNION 
+			SELECT * FROM losses) 
+			AS playtmp
+		GROUP BY id
+;
 
 CREATE VIEW standings AS
-	SELECT id, wins, games FROM played LEFT JOIN wins
-		WHERE played.id = wins.id 
-		ORDER BY wins DESC
-);
+	SELECT played.id, wins.ct AS win, played.ct AS games 
+		FROM played LEFT JOIN wins
+		ON played.id = wins.id 
+		ORDER BY win DESC
+;
 
 
