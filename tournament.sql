@@ -14,9 +14,9 @@ CREATE TABLE players (
 );
 
 CREATE TABLE matches (
-	id1		integer REFERENCES players(id) 
-	id2		integer	REFERENCES players(id)
-	winner	integer REFERENCES players(id)
+	id1		integer REFERENCES players(id), 
+	id2		integer	REFERENCES players(id),
+	winner	integer REFERENCES players(id),
 	PRIMARY KEY (id1, id2)
 );
 
@@ -32,17 +32,17 @@ CREATE VIEW fullmatches (
 
 -- Need a standings view
 
-CREATE VIEW wins (
+CREATE VIEW wins AS
 	SELECT id, count(winner) AS wins FROM players, matches
 		WHERE id = winner
 );
 
-CREATE VIEW played (
+CREATE VIEW played AS
 	SELECT id, count(winner) AS games FROM players LEFT JOIN matches
 		WHERE id = id1 OR id = id2
 );
 
-CREATE VIEW standings (
+CREATE VIEW standings AS
 	SELECT id, wins, games FROM played LEFT JOIN wins
 		WHERE played.id = wins.id 
 		ORDER BY wins DESC
