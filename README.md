@@ -11,6 +11,7 @@ Features:
   * Count players.
   * Clear players.
   * Clear matches.
+  * SQL file to DROP table and database for testing purposes. 
 
 
 Dependencies
@@ -31,7 +32,10 @@ Usage
 
 3) Run tournament_test.py
 
+Reset Databases
+_______________
 
+1. Import clean_tournament.sql
 
 Known Issues
 ------------
