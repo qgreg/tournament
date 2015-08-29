@@ -66,7 +66,13 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-
+"""Returns the number of players currently registered."""
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT * FROM fullstandings;")
+    result = c.fetchall()
+    conn.close()
+    return result
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -75,7 +81,13 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
+    conn = connect()
+    c = conn.cursor()
+    cleanname = bleach.clean(name)
+    c.execute("INSERT INTO matches VALUES (winner, loser)")
+    conn.commit() 
+    conn.close()
+
  
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
