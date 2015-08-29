@@ -66,7 +66,6 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-"""Returns the number of players currently registered."""
     conn = connect()
     c = conn.cursor()
     c.execute("SELECT * FROM fullstandings;")
