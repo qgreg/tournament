@@ -52,4 +52,11 @@ CREATE VIEW standings AS
 		ORDER BY win DESC
 ;
 
+CREATE VIEW fullstandings AS 
+	SELECT players.id, name, win, games 
+	FROM players, standings 
+	WHERE players.id = standings.id 
+	ORDER BY win DESC
+;
+
 
