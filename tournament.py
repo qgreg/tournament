@@ -35,7 +35,6 @@ def countPlayers():
     c.execute("SELECT COUNT(*) FROM players")
     (result,) = c.fetchone()
     conn.close()
-    print(result)
     return result
 
 def registerPlayer(name):
@@ -83,8 +82,7 @@ def reportMatch(winner, loser):
     """
     conn = connect()
     c = conn.cursor()
-    cleanname = bleach.clean(name)
-    c.execute("INSERT INTO matches VALUES (winner, loser)")
+    c.execute("INSERT INTO matches VALUES (%s, %s)" % (winner, loser))
     conn.commit() 
     conn.close()
 
