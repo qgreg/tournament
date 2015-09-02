@@ -85,7 +85,16 @@ CREATE VIEW availmatch AS
 	SELECT * FROM completematches
 ;
 
+CREATE VIEW schedplayer AS
+	SELECT id1 AS id FROM schedmatch
+	UNION 
+	SELECT id2 AS id FROM schedmatch
+;
 
+CREATE VIEW remainmatch AS
+	SELECT id1, id2 FROM availmatch, schedplayer
+	WHERE id1 <> id AND id2 <> id
+;
 
 
 
