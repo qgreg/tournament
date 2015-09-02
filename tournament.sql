@@ -14,7 +14,7 @@ CREATE TABLE players (
 );
 
 CREATE TABLE matches (
-	winner		integer REFERENCES players(id), 
+	winner		integer	REFERENCES players(id),
 	loser		integer	REFERENCES players(id),
 	PRIMARY KEY (winner, loser)
 );
@@ -47,8 +47,8 @@ CREATE VIEW played AS
 
 CREATE VIEW standings AS
 	SELECT played.id, wins.ct AS win, played.ct AS games 
-		FROM played LEFT JOIN wins
-		ON played.id = wins.id 
+		FROM played LEFT JOIN wins 
+		ON played.id = wins.id
 		ORDER BY win DESC
 ;
 
@@ -58,5 +58,29 @@ CREATE VIEW fullstandings AS
 	WHERE players.id = standings.id 
 	ORDER BY win DESC
 ;
+
+CREATE VIEW possiblematch AS
+	SELECT a.id as id1, b.id as id2
+	FROM players as a, players as b
+	WHERE a.id < b.id
+	ORDER BY a.id, b.id
+;
+
+CREATE VIEW completematch AS
+	SELECT winner AS id1, loser as id2 FROM matches 
+	WHERE winner < loser
+	UNION
+	SELECT loser AS id1, winner as id2 FROM matches 
+	WHERE loser < winner
+;
+	
+CREATE VIEW availmatch AS
+	SELECT * FROM possiblematch 
+	EXCEPT  
+	SELECT * FROM completematches
+;
+
+
+
 
 
