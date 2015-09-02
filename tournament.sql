@@ -73,6 +73,11 @@ CREATE VIEW completematch AS
 	SELECT loser AS id1, winner as id2 FROM matches 
 	WHERE loser < winner
 ;
+
+CREATE TABLE schedmatch (
+	id1 	integer	REFERENCES players(id),
+	id2		integer	REFERENCES players(id)
+);
 	
 CREATE VIEW availmatch AS
 	SELECT * FROM possiblematch 
