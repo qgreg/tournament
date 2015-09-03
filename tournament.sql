@@ -82,7 +82,7 @@ CREATE TABLE schedmatch (
 CREATE VIEW availmatch AS
 	SELECT * FROM possiblematch 
 	EXCEPT  
-	SELECT * FROM completematches
+	SELECT * FROM completematch
 ;
 
 CREATE VIEW schedplayer AS
