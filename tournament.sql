@@ -78,6 +78,12 @@ CREATE TABLE schedmatch (
 	id1 	integer	REFERENCES players(id),
 	id2		integer	REFERENCES players(id)
 );
+
+CREATE VIEW fullschedmatch AS
+	SELECT id1, a.name AS name1, id2, b.name AS name2
+	FROM schedmatch, players AS a, players as b
+	WHERE id1 = a.id and id2 = b.id
+; 
 	
 CREATE VIEW availmatch AS
 	SELECT * FROM possiblematch 
@@ -98,7 +104,8 @@ CREATE VIEW exceptmatch AS
 	UNION
 	SELECT a.id AS id1, b.id AS id2
 	FROM players AS a, schedplayer AS b
-	WHERE a.id < b.id 
+	WHERE a.id < b.id
+;
 
 CREATE VIEW remainmatch AS
 	SELECT * FROM availmatch 
@@ -125,6 +132,15 @@ CREATE VIEW remainmatchct AS
 	GROUP BY id
 	ORDER BY matchct
 ;
+
+CREATE VIEW remainstand AS
+	SELECT remainplayers.id AS id, standings.win AS win
+	FROM remainplayers
+	LEFT JOIN standings
+	ON remainplayers.id = standings.id
+	ORDER BY win DESC
+;
+
 
 
 
