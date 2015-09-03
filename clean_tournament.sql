@@ -5,4 +5,6 @@ DROP TABLE matches CASCADE;
 
 DROP TABLE players CASCADE;
 
+DROP TABLE schedmatch CASCADE;
+
 DROP DATABASE tournament;
