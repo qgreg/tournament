@@ -113,10 +113,10 @@ CREATE VIEW remainmatchbest AS
 	ORDER BY matchwins DESC
 ;
 
-CREATE VIEW remainstand AS
-	SELECT standings.id AS id, win from standings, schedplayer 
-	WHERE standings.id <> schedplayer.id
-	ORDER BY win DESC
+CREATE VIEW remainplayers AS
+	SELECT standings.id AS id from standings 
+	EXCEPT
+	SELECT id FROM schedplayer
 ;
 
 CREATE VIEW remainmatchct AS
