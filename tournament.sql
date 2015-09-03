@@ -46,14 +46,14 @@ CREATE VIEW played AS
 ;
 
 CREATE VIEW standings AS
-	SELECT played.id, wins.ct AS win, played.ct AS games 
+	SELECT played.id AS id, wins.ct AS win, played.ct AS games 
 		FROM played LEFT JOIN wins 
 		ON played.id = wins.id
 		ORDER BY win DESC
 ;
 
 CREATE VIEW fullstandings AS 
-	SELECT players.id, name, win, games 
+	SELECT players.id AS id, name, win, games 
 	FROM players, standings 
 	WHERE players.id = standings.id 
 	ORDER BY win DESC
@@ -91,13 +91,30 @@ CREATE VIEW schedplayer AS
 	SELECT id2 AS id FROM schedmatch
 ;
 
+CREATE VIEW exceptmatch AS
+	SELECT a.id AS id1, b.id AS id2
+	FROM schedplayer AS a, players AS b
+	WHERE a.id < b.id 
+	UNION
+	SELECT a.id AS id1, b.id AS id2
+	FROM players AS a, schedplayer AS b
+	WHERE a.id < b.id 
+
 CREATE VIEW remainmatch AS
-	SELECT id1, id2 FROM availmatch, schedplayer
-	WHERE id1 <> id AND id2 <> id
+	SELECT * FROM availmatch 
+	EXCEPT  
+	SELECT * FROM exceptmatch
+;
+
+CREATE VIEW remainmatchbest AS
+	SELECT id1, id2, (a.win + b.win) AS matchwins 
+	FROM remainmatch, standings AS a, standings as b
+	WHERE id1 = a.id and id2 = b.id
+	ORDER BY matchwins DESC
 ;
 
 CREATE VIEW remainstand AS
-	SELECT standings.id, win from standings, schedplayer 
+	SELECT standings.id AS id, win from standings, schedplayer 
 	WHERE standings.id <> schedplayer.id
 	ORDER BY win DESC
 ;
