@@ -96,5 +96,18 @@ CREATE VIEW remainmatch AS
 	WHERE id1 <> id AND id2 <> id
 ;
 
+CREATE VIEW remainstand AS
+	SELECT standings.id, win from standings, schedplayer 
+	WHERE standings.id <> schedplayer.id
+	ORDER BY win DESC
+;
+
+CREATE VIEW remainmatchct AS
+	SELECT id, count(id1) AS matchct FROM players, remainmatch
+	WHERE id = id1 or id = id2
+	GROUP BY id
+	ORDER BY matchct
+;
+
 
 
