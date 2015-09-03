@@ -92,12 +92,21 @@ def reportMatch(winner, loser):
     conn.close()
 
 
+def deleteSchedMatch():
+    """Remove all the scheduled records from the database."""
+    conn = connect()
+    c = conn.cursor()
+    c.execute("DELETE FROM schedmatch")
+    conn.commit()
+    conn.close()
+
+
 def countUnassigned():
     """Returns the number of players to be assigned to matches in the round.
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM remainsched")
+    c.execute("SELECT COUNT(*) FROM remainplayers")
     (result,) = c.fetchone()
     conn.close()
     return result
@@ -110,8 +119,9 @@ def remainMatchCt():
     conn = connect()
     c = conn.cursor()
     c.execute("SELECT * FROM remainmatchct")
-    (, result) = c.fetchone()
+    (placeholder, result) = c.fetchone()
     conn.close()
+    print (result)
     return result
 
 
@@ -125,9 +135,9 @@ def schedMatch(id1, id2):
     conn = connect()
     c = conn.cursor()
     if id1 < id2:
-        c.execute("INSERT INTO sched VALUES (%s, %s)" % (id1, id2))
+        c.execute("INSERT INTO schedmatch VALUES (%s, %s)" % (id1, id2))
     if id1 > id2:
-        c.execute("INSERT INTO sched VALUES (%s, %s)" % (id2, id1))
+        c.execute("INSERT INTO schedmatch VALUES (%s, %s)" % (id2, id1))
     conn.commit()
     conn.close()
 
@@ -145,7 +155,7 @@ def bestValidMatch(id):
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("SELECT * FROM remainmatch WHERE id = %s OR id = %s", id, id)
+    c.execute("SELECT * FROM remainmatch WHERE id1 = %s OR id2 = %s" % (id,id))
     result = c.fetchone()
     conn.close()
     return result
@@ -167,32 +177,40 @@ def swissPairings():
         name2: the second player's name
     """
     # Continue to assign matches while there are two or more unassigned players
-    while countUnassigned() >= 2:
+    deleteSchedMatch()
+    unassignplayers = countUnassigned()
+    while (unassignplayers >= 2):
         # Assign matches to players that have only one valid remaining match
-        while remainMatchCt() = 1:
+        added = False
+        matchcount = remainMatchCt() 
+        # if there's a id with only one good match, assign it
+        # Else assign the best match for the top player
+        if (matchcount == 1):
             conn = connect()
             c = conn.cursor()
             # Get the id of a team with one valid remaining match
             c.execute("SELECT * FROM remainmatchct")
-            (nextteam,) = c.fetchone()
+            (nextteam, placeholder) = c.fetchone()
             conn.close()
             # Find the valid match that includes that id
             (id1, id2) = bestValidMatch(nextteam)
             # Assign the match
             schedMatch(id1, id2)
-            # If we don't assign any matches above, we want to assign one
-            # if we do assign a match, we want to count unassigned again
         else:
             conn = connect()
             c = conn.cursor()
             # Get the id of the best remaining player
             c.execute("SELECT * FROM remainstand")
-            (nextteam,) = c.fetchone()
+            (nextteam, placeholder) = c.fetchone()
             conn.close()
             # Find the strongest available match
             (id1, id2) = bestValidMatch(nextteam)
-            # Assign the match
+            # Schedule the match
             schedMatch(id1, id2)
+        if (unassignplayers > 2):
+                unassignplayers = countUnassigned()
+        else:
+            break
     # Put the assigned matches into a result
     conn = connect()
     c = conn.cursor()
@@ -200,10 +218,6 @@ def swissPairings():
     result = c.fetchall()
     conn.close()
     # Clear the round data
-    conn = connect()
-    c = conn.cursor()
-    c.execute("DELETE FROM schedmatch")
-    conn.commit()
-    conn.close()
+    deleteSchedMatch()
     # Return the result
     return result
