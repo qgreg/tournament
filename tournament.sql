@@ -182,6 +182,18 @@ CREATE VIEW remainmatchct AS
 	ORDER BY matchct
 ;
 
+--- remainmatchctstand is a view of remainmatchct and standings that
+--- sorts the number of matches for a remaining player first by number of 
+--- matches, then my the number of wins.
+
+CREATE VIEW remainmatchctstand AS
+	SELECT remainmatchct.id AS id, matchct, standings.win AS win
+	FROM remainmatchct 
+	LEFT JOIN standings
+	ON remainmatchct.id = standings.id
+	ORDER BY matchct, win DESC
+;
+
 -- remainstand is a view of remainplayers and standings that sorts players
 -- who have not been scheduled for a match in the round descending by 
 -- most wins.

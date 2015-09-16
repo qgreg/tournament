@@ -121,7 +121,6 @@ def remainMatchCt():
     c.execute("SELECT * FROM remainmatchct")
     (placeholder, result) = c.fetchone()
     conn.close()
-    print (result)
     return result
 
 
@@ -189,8 +188,8 @@ def swissPairings():
             conn = connect()
             c = conn.cursor()
             # Get the id of a team with one valid remaining match
-            c.execute("SELECT * FROM remainmatchct")
-            (nextteam, placeholder) = c.fetchone()
+            c.execute("SELECT * FROM remainmatchctstand")
+            (nextteam, placeholder1, placeholder2) = c.fetchone()
             conn.close()
             # Find the valid match that includes that id
             (id1, id2) = bestValidMatch(nextteam)
