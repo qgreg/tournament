@@ -11,7 +11,8 @@ Features:
   * Count players.
   * Clear players.
   * Clear matches.
-  * SQL file to DROP table and database for testing purposes. 
+  * SQL file to DROP table and database for testing purposes.
+  * Will not repeat matches in tournaments.
 
 
 Dependencies
@@ -29,6 +30,8 @@ Usage
 1) Open tournament.py, tournament_test.py and tournament.sql
 
 2) Import tournament.sql in psql.
+
+3) Connect to the database tournament.
 
 3) Run tournament_test.py
 
