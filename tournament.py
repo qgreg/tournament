@@ -4,7 +4,7 @@
 #
 
 import psycopg2
-import bleach
+import contextlib
 
 
 def connect():
@@ -12,31 +12,39 @@ def connect():
     return psycopg2.connect("dbname=tournament")
 
 
+@contextlib.contextmanager
+def with_cursor():
+    """Handles connection, committing and closing for using a database."""
+    conn = connect()
+    cur = conn.cursor()
+    try:
+        yield cur
+    except:
+        raise
+    else:
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+
 def deleteMatches():
     """Remove all the match records from the database."""
-    conn = connect()
-    c = conn.cursor()
-    c.execute("DELETE FROM matches")
-    conn.commit()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("DELETE FROM matches")
 
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    conn = connect()
-    c = conn.cursor()
-    c.execute("DELETE FROM players")
-    conn.commit()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("DELETE FROM players")
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM players")
-    (result,) = c.fetchone()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("SELECT COUNT(*) FROM players")
+        (result,) = c.fetchone()
     return result
 
 
@@ -49,12 +57,8 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-    conn = connect()
-    c = conn.cursor()
-    cleanname = bleach.clean(name)
-    c.execute("INSERT INTO players(name) VALUES (%s);", (cleanname,))
-    conn.commit()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("INSERT INTO players(name) VALUES (%s);", (name,))
 
 
 def playerStandings():
@@ -70,11 +74,9 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT * FROM fullstandings")
-    result = c.fetchall()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("SELECT * FROM fullstandings")
+        result = c.fetchall()
     return result
 
 
@@ -85,30 +87,22 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    conn = connect()
-    c = conn.cursor()
-    c.execute("INSERT INTO matches VALUES (%s, %s)" % (winner, loser))
-    conn.commit()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("INSERT INTO matches VALUES (%s, %s)", (winner, loser))
 
 
 def deleteSchedMatch():
     """Remove all the scheduled records from the database."""
-    conn = connect()
-    c = conn.cursor()
-    c.execute("DELETE FROM schedmatch")
-    conn.commit()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("DELETE FROM schedmatch")
 
 
 def countUnassigned():
     """Returns the number of players to be assigned to matches in the round.
     """
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM remainplayers")
-    (result,) = c.fetchone()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("SELECT COUNT(*) FROM remainplayers")
+        (result,) = c.fetchone()
     return result
 
 
@@ -116,11 +110,9 @@ def remainMatchCt():
     """Returns the smallest number of unique remaining matches for
     current players.
     """
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT * FROM remainmatchct")
-    (placeholder, result) = c.fetchone()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("SELECT * FROM remainmatchct")
+        (placeholder, result) = c.fetchone()
     return result
 
 
@@ -131,14 +123,11 @@ def schedMatch(id1, id2):
       id1:  the id number of the first player
       id2:  the id number of the second player
     """
-    conn = connect()
-    c = conn.cursor()
-    if id1 < id2:
-        c.execute("INSERT INTO schedmatch VALUES (%s, %s)" % (id1, id2))
-    if id1 > id2:
-        c.execute("INSERT INTO schedmatch VALUES (%s, %s)" % (id2, id1))
-    conn.commit()
-    conn.close()
+    with with_cursor() as c:
+        if id1 < id2:
+            c.execute("INSERT INTO schedmatch VALUES (%s, %s)" % (id1, id2))
+        if id1 > id2:
+            c.execute("INSERT INTO schedmatch VALUES (%s, %s)" % (id2, id1))
 
 
 def bestValidMatch(id):
@@ -152,11 +141,10 @@ def bestValidMatch(id):
             id1: the first player's unique id
             id2: the second player's unique id
     """
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT * FROM remainmatch WHERE id1 = %s OR id2 = %s" % (id,id))
-    result = c.fetchone()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("SELECT * FROM remainmatch WHERE id1 = %s OR id2 = %s",
+                  (id, id))
+        result = c.fetchone()
     return result
 
 
@@ -181,27 +169,23 @@ def swissPairings():
     while (unassignplayers >= 2):
         # Assign matches to players that have only one valid remaining match
         added = False
-        matchcount = remainMatchCt() 
+        matchcount = remainMatchCt()
         # if there's a id with only one good match, assign it
         # Else assign the best match for the top player
         if (matchcount == 1):
-            conn = connect()
-            c = conn.cursor()
-            # Get the id of a team with one valid remaining match
-            c.execute("SELECT * FROM remainmatchctstand")
-            (nextteam, placeholder1, placeholder2) = c.fetchone()
-            conn.close()
+            with with_cursor() as c:
+                # Get the id of a team with one valid remaining match
+                c.execute("SELECT * FROM remainmatchctstand")
+                (nextteam, placeholder1, placeholder2) = c.fetchone()
             # Find the valid match that includes that id
             (id1, id2) = bestValidMatch(nextteam)
             # Assign the match
             schedMatch(id1, id2)
         else:
-            conn = connect()
-            c = conn.cursor()
-            # Get the id of the best remaining player
-            c.execute("SELECT * FROM remainstand")
-            (nextteam, placeholder) = c.fetchone()
-            conn.close()
+            with with_cursor() as c:
+                # Get the id of the best remaining player
+                c.execute("SELECT * FROM remainstand")
+                (nextteam, placeholder) = c.fetchone()
             # Find the strongest available match
             (id1, id2) = bestValidMatch(nextteam)
             # Schedule the match
@@ -211,11 +195,9 @@ def swissPairings():
         else:
             break
     # Put the assigned matches into a result
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT * FROM fullschedmatch")
-    result = c.fetchall()
-    conn.close()
+    with with_cursor() as c:
+        c.execute("SELECT * FROM fullschedmatch")
+        result = c.fetchall()
     # Clear the round data
     deleteSchedMatch()
     # Return the result
