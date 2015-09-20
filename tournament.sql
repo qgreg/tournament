@@ -20,44 +20,18 @@ CREATE TABLE matches (
 	PRIMARY KEY (winner, loser)
 );
 
--- wins is a view to count the number of wins by each id.
+-- standings is a view that uses players and matches to count wins and games
+-- and then sort wins descending
 
-CREATE VIEW wins AS
-	SELECT id, count(winner) AS ct
-	FROM players LEFT JOIN matches
-	ON id = winner
-		GROUP BY id
-;
-
--- losses is a view to count the number of losses by each id.
-
-CREATE VIEW losses AS
-	SELECT id, count(loser) AS ct
-	FROM players LEFT JOIN matches
-	ON id = loser
-		GROUP BY id
-;
-
--- played is a view that uses wins and losses to count the number of 
--- games played by each id.
-
-CREATE VIEW played AS
-		SELECT id, sum(ct) AS ct 
-		FROM (
-			SELECT * FROM wins 
-			UNION 
-			SELECT * FROM losses) 
-			AS playtmp
-		GROUP BY id
-;
-
--- standings is a view that uses played and wins to sort wins descending
--- and show games played.
-
-CREATE VIEW standings AS
-	SELECT played.id AS id, wins.ct AS win, played.ct AS games 
-		FROM played LEFT JOIN wins 
-		ON played.id = wins.id
+CREATE VIEW standings AS 
+	SELECT players.id, 
+		COUNT(CASE WHEN players.id = winner THEN 1 ELSE NULL END) AS win, 
+		COUNT(CASE WHEN players.id = winner OR id = loser THEN 1 ELSE NULL END)
+			AS games
+		FROM players
+		LEFT JOIN matches
+		ON players.id = winner OR players.id = loser
+		GROUP BY players.id
 		ORDER BY win DESC
 ;
 
